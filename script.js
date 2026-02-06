@@ -60,26 +60,69 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(spawnHeart, 500);
 
     // --- Audio ---
-    elements.musicBtn.addEventListener('click', () => {
+    // --- Audio ---
+    // Try to play immediately (Autoplay policy might block this)
+    elements.bgMusic.volume = 0;
+    let autoPlayPromise = elements.bgMusic.play();
+
+    if (autoPlayPromise !== undefined) {
+        autoPlayPromise.then(() => {
+            // Autoplay started!
+            fadeInAudio();
+            musicPlaying = true;
+            updateMusicButton();
+        }).catch(error => {
+            // Autoplay was prevented. Wait for first interaction.
+            console.log("Autoplay prevented. Waiting for interaction.");
+            document.body.addEventListener('click', startAudioOnFirstInteraction, { once: true });
+            // Visually show it as "Sound On" anyway because the user expects it to be active
+            musicPlaying = false;
+            updateMusicButton();
+        });
+    }
+
+    function startAudioOnFirstInteraction() {
         if (!musicPlaying) {
-            elements.bgMusic.volume = 0; // Start at 0
+            elements.bgMusic.play().then(() => {
+                fadeInAudio();
+                musicPlaying = true;
+                updateMusicButton();
+            });
+        }
+    }
+
+    function fadeInAudio() {
+        let vol = 0;
+        const interval = setInterval(() => {
+            if (vol < 1) {
+                vol += 0.05;
+                elements.bgMusic.volume = Math.min(vol, 1);
+            } else {
+                clearInterval(interval);
+            }
+        }, 100);
+    }
+
+    function updateMusicButton() {
+        if (musicPlaying) {
+            elements.musicBtn.innerText = "Sound On 🎵";
+            elements.musicBtn.style.opacity = '0.5';
+        } else {
+            elements.musicBtn.innerText = "Enable Sound 🎵";
+            elements.musicBtn.style.opacity = '1';
+        }
+    }
+
+    elements.musicBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+
+        if (!musicPlaying) {
+            elements.bgMusic.volume = 0;
             elements.bgMusic.play().then(() => {
                 musicPlaying = true;
-                elements.musicBtn.innerText = "Sound On 🎵";
-                elements.musicBtn.style.opacity = '0.5';
-
-                // Fade in
-                let vol = 0;
-                const interval = setInterval(() => {
-                    if (vol < 1) {
-                        vol += 0.05;
-                        elements.bgMusic.volume = Math.min(vol, 1);
-                    } else {
-                        clearInterval(interval);
-                    }
-                }, 100);
-
-            }).catch(e => console.log("Audio play failed:", e));
+                fadeInAudio();
+                updateMusicButton();
+            });
         } else {
             // Fade out then pause
             let vol = elements.bgMusic.volume;
@@ -91,8 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     clearInterval(interval);
                     elements.bgMusic.pause();
                     musicPlaying = false;
-                    elements.musicBtn.innerText = "Enable Sound 🎵";
-                    elements.musicBtn.style.opacity = '1';
+                    updateMusicButton();
                 }
             }, 100);
         }
