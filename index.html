@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You 💙</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@1,400;1,600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Floating Hearts Background -->
+    <div id="hearts-container"></div>
+
+    <!-- Music Control -->
+    <button id="music-toggle" class="music-btn">Enable Sound 🎵</button>
+    <audio id="bg-music" loop>
+        <source src="music.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <main>
+        <!-- Page 1: Apology -->
+        <section id="page-1" class="page active">
+            <div class="content-wrapper">
+                <div class="text-container" id="apology-text">
+                    <!-- Text will be typed here by JS -->
+                </div>
+                <button id="continue-btn" class="primary-btn hidden">Continue &rarr;</button>
+            </div>
+        </section>
+
+        <!-- Page 2: Question -->
+        <section id="page-2" class="page hidden">
+            <div class="card">
+                <div class="text-container" id="question-text">
+                    <!-- Text will be typed here by JS -->
+                </div>
+                <div class="buttons-container" id="valentine-buttons">
+                    <button id="no-btn" class="secondary-btn">No</button>
+                    <button id="yes-btn" class="primary-btn">YES</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Page 3: Acceptance -->
+        <section id="page-3" class="page hidden">
+            <div class="content-wrapper">
+                <div class="text-container" id="acceptance-text">
+                    <!-- "Thank you" typed here -->
+                </div>
+                <div id="spam-container">
+                    <!-- Spammed buttons appear here -->
+                </div>
+                <div id="final-banner" class="banner hidden">
+                    <p>See you at the gym… and at drinks 🥂</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
