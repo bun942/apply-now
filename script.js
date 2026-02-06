@@ -61,35 +61,41 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Audio ---
     // --- Audio ---
-    // Try to play immediately (Autoplay policy might block this)
-    elements.bgMusic.volume = 0;
-    let autoPlayPromise = elements.bgMusic.play();
+    // User wants "active all the time" appearance.
+    // We try to play. If it fails, we wait for a click anywhere, but keep the button as "Sound On".
 
-    if (autoPlayPromise !== undefined) {
-        autoPlayPromise.then(() => {
-            // Autoplay started!
-            fadeInAudio();
-            musicPlaying = true;
-            updateMusicButton();
-        }).catch(error => {
-            // Autoplay was prevented. Wait for first interaction.
-            console.log("Autoplay prevented. Waiting for interaction.");
-            document.body.addEventListener('click', startAudioOnFirstInteraction, { once: true });
-            // Visually show it as "Sound On" anyway because the user expects it to be active
-            musicPlaying = false;
-            updateMusicButton();
-        });
-    }
+    let isUserPaused = false; // Track if user explicitly turned it off
 
-    function startAudioOnFirstInteraction() {
-        if (!musicPlaying) {
-            elements.bgMusic.play().then(() => {
-                fadeInAudio();
+    // Default UI state
+    elements.musicBtn.innerText = "Sound On 🎵";
+    elements.musicBtn.style.opacity = '0.5';
+
+    function attemptPlay() {
+        if (isUserPaused) return;
+
+        elements.bgMusic.volume = 0;
+        let p = elements.bgMusic.play();
+
+        if (p !== undefined) {
+            p.then(() => {
                 musicPlaying = true;
-                updateMusicButton();
+                fadeInAudio();
+            }).catch(e => {
+                console.log("Autoplay waiting for interaction");
+                // Add one-time listener to start it on any click
+                document.addEventListener('click', () => {
+                    if (!musicPlaying && !isUserPaused) {
+                        elements.bgMusic.play().then(() => {
+                            musicPlaying = true;
+                            fadeInAudio();
+                        });
+                    }
+                }, { once: true });
             });
         }
     }
+
+    attemptPlay();
 
     function fadeInAudio() {
         let vol = 0;
@@ -103,40 +109,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 100);
     }
 
-    function updateMusicButton() {
-        if (musicPlaying) {
-            elements.musicBtn.innerText = "Sound On 🎵";
-            elements.musicBtn.style.opacity = '0.5';
-        } else {
-            elements.musicBtn.innerText = "Enable Sound 🎵";
-            elements.musicBtn.style.opacity = '1';
-        }
-    }
-
     elements.musicBtn.addEventListener('click', (e) => {
         e.stopPropagation();
 
-        if (!musicPlaying) {
-            elements.bgMusic.volume = 0;
-            elements.bgMusic.play().then(() => {
-                musicPlaying = true;
-                fadeInAudio();
-                updateMusicButton();
-            });
-        } else {
-            // Fade out then pause
+        if (musicPlaying || !isUserPaused) {
+            // User wants to turn OFF
+            isUserPaused = true;
+            musicPlaying = false;
+
+            // Fade out
             let vol = elements.bgMusic.volume;
             const interval = setInterval(() => {
                 if (vol > 0) {
-                    vol -= 0.05;
+                    vol -= 0.1;
                     elements.bgMusic.volume = Math.max(vol, 0);
                 } else {
                     clearInterval(interval);
                     elements.bgMusic.pause();
-                    musicPlaying = false;
-                    updateMusicButton();
+                    elements.musicBtn.innerText = "Enable Sound 🎵";
+                    elements.musicBtn.style.opacity = '1';
                 }
-            }, 100);
+            }, 50);
+
+        } else {
+            // User wants to turn ON
+            isUserPaused = false;
+            elements.musicBtn.innerText = "Sound On 🎵";
+            elements.musicBtn.style.opacity = '0.5';
+
+            elements.bgMusic.volume = 0;
+            elements.bgMusic.play().then(() => {
+                musicPlaying = true;
+                fadeInAudio();
+            });
         }
     });
 
